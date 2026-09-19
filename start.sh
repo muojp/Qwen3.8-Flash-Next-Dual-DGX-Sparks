@@ -878,6 +878,13 @@ print(json.dumps({"text_config": tc}, separators=(",", ":")) if tc else "")
     DOCKER_ARGS+=(--cap-add SYS_NICE --ulimit memlock=-1 --ulimit stack=67108864)
     DOCKER_ARGS+=(--device /dev/infiniband:/dev/infiniband)
     # NCCL / fabric env (VLLM_HOST_IP set per-node below)
+    # vLLM posts a fingerprint of the box to https://stats.vllm.ai when the engine starts unless
+    # told not to — a UUID, CPU and memory sizes, GPU type, kernel string, model architecture and
+    # version. No prompts, but it is this machine's profile leaving on every boot. Both ranks opt
+    # out; HF_HUB_DISABLE_TELEMETRY covers the fetch path the offline flags do not.
+    DOCKER_ARGS+=(-e "VLLM_NO_USAGE_STATS=${VLLM_NO_USAGE_STATS:-1}")
+    DOCKER_ARGS+=(-e "DO_NOT_TRACK=${DO_NOT_TRACK:-1}")
+    DOCKER_ARGS+=(-e "HF_HUB_DISABLE_TELEMETRY=${HF_HUB_DISABLE_TELEMETRY:-1}")
     DOCKER_ARGS+=(-e "GLOO_SOCKET_IFNAME=$IFACE")
     DOCKER_ARGS+=(-e "NCCL_SOCKET_IFNAME=$IFACE")
     DOCKER_ARGS+=(-e "TP_SOCKET_IFNAME=$IFACE")
