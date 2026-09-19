@@ -716,9 +716,17 @@ if $DO_LAUNCH; then
     REMOTE_ID=$(ssh_worker "docker image inspect --format '{{.Id}}' '$IMAGE' 2>/dev/null" || echo "")
 
     if [[ "$LOCAL_ID" != "$REMOTE_ID" ]]; then
-        info "Pulling image on worker..."
-        ssh_worker "docker pull '$IMAGE'"
-        ok "Image ready on worker."
+        # Image ids can differ for the same tag without the image being wrong: `docker save` /
+        # `docker load` recomputes them, and a multi-arch tag resolves per node. Pull only when the
+        # worker has nothing — a registry that refuses a redundant pull should not stop a start when
+        # both nodes already hold the tag. SKIP_IMAGE_PULL=1 forces that path.
+        if [[ -z "$REMOTE_ID" && "${SKIP_IMAGE_PULL:-0}" != "1" ]]; then
+            info "Pulling image on worker..."
+            ssh_worker "docker pull '$IMAGE'"
+            ok "Image ready on worker."
+        else
+            warn "worker has $IMAGE with a different id ($REMOTE_ID vs $LOCAL_ID) — using it"
+        fi
     else
         ok "Image already on worker."
     fi
