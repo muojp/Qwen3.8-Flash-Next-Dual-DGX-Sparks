@@ -1019,6 +1019,9 @@ docker run \
     --gpus all --network host --ipc host \
     --cap-add SYS_NICE --ulimit memlock=-1 --ulimit stack=67108864 \
     --device /dev/infiniband:/dev/infiniband \
+    -e "VLLM_NO_USAGE_STATS=${VLLM_NO_USAGE_STATS:-1}" \
+    -e "DO_NOT_TRACK=${DO_NOT_TRACK:-1}" \
+    -e "HF_HUB_DISABLE_TELEMETRY=${HF_HUB_DISABLE_TELEMETRY:-1}" \
     -e GLOO_SOCKET_IFNAME=$WORKER_IFACE \
     -e NCCL_SOCKET_IFNAME=$WORKER_IFACE \
     -e TP_SOCKET_IFNAME=$WORKER_IFACE \
